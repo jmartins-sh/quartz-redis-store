@@ -23,7 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\Quartz.Redis.Store\Quartz.Redis.Store.csproj" />
+      <ProjectReference Include="..\..\src\QuartzRedis.Store\QuartzRedis.Store.csproj" />
     </ItemGroup>
 
 </Project>
