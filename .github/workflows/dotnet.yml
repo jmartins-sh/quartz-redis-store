@@ -18,8 +18,8 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - name: Restore dependencies
-      run: dotnet restore ./src/Quartz.Redis.Store.sln
+      run: dotnet restore ./src/QuartzRedis.Store.sln
     - name: Build
-      run: dotnet build --no-restore ./src/Quartz.Redis.Store.sln
+      run: dotnet build --no-restore ./src/QuartzRedis.Store.sln
     #- name: Test
       #run: dotnet test --no-build --verbosity normal
