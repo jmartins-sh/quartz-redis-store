@@ -7,7 +7,6 @@
         <Authors>j.martins</Authors>
         <Description>This plugin to Quartz.NET library aims to deliver a way to store information inside the Redis.</Description>
         <PackageTags>quartz.net</PackageTags>
-        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     </PropertyGroup>
 
     <ItemGroup>
