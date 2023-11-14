@@ -14,13 +14,13 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
-    - name: Create NuGet Package ${{ github.ref_name }}
-      run: dotnet pack -c Release /p:Version=${{ github.event.release.tag_name }} /p:PackageReleaseNotes="See https://github.com/joaoantoniomartinsfilho/quartz-redis-store/releases/tag/${{ github.event.release.tag_name }}"
+    - name: Create NuGet Package
+      run: dotnet pack -c Release /p:Version=${{ github.ref_name }} /p:PackageReleaseNotes="See https://github.com/joaoantoniomartinsfilho/quartz-redis-store/releases/tag/${{ github.event.release.tag_name }}"
       working-directory: ./src      
     - name: Archive NuGet Package
       uses: actions/upload-artifact@v1
       with:
         name: Quartz.Redis.Store
-        path: ./src/Quartz.Redis.Store/bin/Release/Quartz.Redis.Store.${{ github.event.release.tag_name }}.nupkg   
+        path: ./src/Quartz.Redis.Store/bin/Release/Quartz.Redis.Store.${{ github.ref_name }}.nupkg   
     - name: Publish Nuget Package
       run: dotnet nuget push **/*.nupkg --api-key ${{ secrets.nuget_api_key }} --source https://api.nuget.org/v3/index.json --no-symbols true
