@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <Authors>j.martins</Authors>
+        <Description>This plugin to Quartz.NET library aims to deliver a way to store information inside the Redis.</Description>
+        <PackageTags>quartz.net</PackageTags>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Common.Logging" Version="3.4.1" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+      <PackageReference Include="Quartz" Version="3.7.0" />
+      <PackageReference Include="StackExchange.Redis" Version="2.7.4" />
+    </ItemGroup>
+
+</Project>
