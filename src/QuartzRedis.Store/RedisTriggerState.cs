@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Quartz.Redis.Store
+namespace QuartzRedis.Store
 {
     /// <summary>
     /// Trigger State Enum

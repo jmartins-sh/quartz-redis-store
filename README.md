@@ -8,9 +8,9 @@ So I thought, why not keep the good code and features and support / add new feat
 
 var properties = new NameValueCollection
 {
-    ["quartz.jobStore.type"] = $"{nameof(RedisJobStore)}, {nameof(JobStore)}",
+    ["quartz.jobStore.type"] = "QuartzRedis.Store.RedisJobStore, QuartzRedis.Store",
     ["quartz.jobStore.keyPrefix"] = "UnitJob",
-    ["quartz.serializer.type"] = "json",
+    ["quartz.serializer.type"] = "newtonsoft",
     ["quartz.scheduler.instanceId"] = "AUTO",
     ["quartz.jobStore.dbNum"] = "1",
     ["quartz.jobStore.redisConfiguration"] = "127.0.0.1:6379,allowAdmin=true,syncTimeout=5000,password=1234",

@@ -1,4 +1,4 @@
-﻿namespace Quartz.Redis.Store
+﻿namespace QuartzRedis.Store
 {
     /// <summary>
 	/// Extension methods for <see cref="DateTime"/>

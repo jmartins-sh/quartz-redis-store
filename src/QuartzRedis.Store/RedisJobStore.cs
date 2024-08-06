@@ -1,9 +1,10 @@
 ﻿using Common.Logging;
+using Quartz;
 using Quartz.Impl.Matchers;
 using Quartz.Spi;
 using StackExchange.Redis;
 
-namespace Quartz.Redis.Store
+namespace QuartzRedis.Store
 {
     /// <summary>
     /// Redis Job Store 

@@ -1,6 +1,7 @@
-﻿using Quartz.Spi;
+﻿using Quartz;
+using Quartz.Spi;
 
-namespace Quartz.Redis.Store
+namespace QuartzRedis.Store
 {
     public class SampleSignaler : ISchedulerSignaler
     {

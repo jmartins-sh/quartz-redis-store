@@ -1,4 +1,6 @@
-﻿namespace Quartz.Redis.Store
+﻿using Quartz;
+
+namespace QuartzRedis.Store
 {
     /// <summary>
     /// schema class for creating keys for hash, set etc. 

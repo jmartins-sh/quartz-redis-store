@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
-namespace Quartz.Redis.Store
+namespace QuartzRedis.Store
 {
     public static class EnumExtension
     {

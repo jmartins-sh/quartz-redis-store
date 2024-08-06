@@ -1,4 +1,4 @@
-﻿namespace Quartz.Redis.Store
+﻿namespace QuartzRedis.Store
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     public class JobCronAttribute : Attribute

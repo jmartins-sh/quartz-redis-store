@@ -1,8 +1,9 @@
-﻿using Quartz.Impl.Matchers;
+﻿using Quartz;
+using Quartz.Impl.Matchers;
 using Quartz.Spi;
 using StackExchange.Redis;
 
-namespace Quartz.Redis.Store
+namespace QuartzRedis.Store
 {
     /// <summary>
     /// Master/slave redis storage for job, trigger, calendar, scheduler related operations.

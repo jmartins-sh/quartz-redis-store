@@ -2,12 +2,13 @@
 using Common.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using Quartz;
 using Quartz.Impl.Matchers;
 using Quartz.Impl.Triggers;
 using Quartz.Spi;
 using StackExchange.Redis;
 
-namespace Quartz.Redis.Store
+namespace QuartzRedis.Store
 {
 
     /// <summary>
