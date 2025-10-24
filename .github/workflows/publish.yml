@@ -18,7 +18,7 @@ jobs:
       run: dotnet pack -c Release /p:Version=${{ github.ref_name }} /p:PackageReleaseNotes="See https://github.com/joaoantoniomartinsfilho/quartz-redis-store/releases/tag/${{ github.event.release.tag_name }}"
       working-directory: ./src      
     - name: Archive NuGet Package
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: QuartzRedis.Store
         path: ./src/QuartzRedis.Store/bin/Release/QuartzRedis.Store.${{ github.ref_name }}.nupkg   
