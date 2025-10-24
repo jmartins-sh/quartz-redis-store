@@ -65,6 +65,7 @@ namespace QuartzRedis.Store
         public override void StoreTrigger(ITrigger trigger, bool replaceExisting)
         {
             var triggerHashKey = RedisJobStoreSchema.TriggerHashkey(trigger.Key);
+            var triggerDataMapHashKey = RedisJobStoreSchema.TriggerJobDataMapHashKey(trigger.Key);
             var triggerGroupSetKey = RedisJobStoreSchema.TriggerGroupSetKey(trigger.Key.Group);
             var jobTriggerSetKey = RedisJobStoreSchema.JobTriggersSetKey(trigger.JobKey);
 
@@ -82,6 +83,7 @@ namespace QuartzRedis.Store
 
 
             Db.HashSet(triggerHashKey, ConvertToHashEntries(trigger));
+            Db.HashSet(triggerDataMapHashKey, ConvertToHashEntries(trigger.JobDataMap));
             Db.SetAdd(RedisJobStoreSchema.TriggersSetKey(), triggerHashKey);
             Db.SetAdd(RedisJobStoreSchema.TriggerGroupsSetKey(), triggerGroupSetKey);
             Db.SetAdd(triggerGroupSetKey, triggerHashKey);
