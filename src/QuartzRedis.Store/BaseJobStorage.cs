@@ -1146,7 +1146,12 @@ namespace QuartzRedis.Store
                                           double.Parse(properties[RedisJobStoreSchema.PrevFireTime])));
             }
 
-
+            var triggerJobDataMapKey = RedisJobStoreSchema.TriggerJobDataMapHashKey(triggerKey);
+            var triggerJobDataMap = Db.HashGetAll(triggerJobDataMapKey);
+            if (triggerJobDataMap.Any())
+            {
+                trigger.JobDataMap = new JobDataMap(ConvertToDictionaryString(triggerJobDataMap) as IDictionary);
+            }
         }
 
         /// <summary>

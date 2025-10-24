@@ -315,6 +315,16 @@ namespace QuartzRedis.Store
         }
 
         /// <summary>
+        /// construct a hash Key for the trigger specific jobdatamap
+        /// </summary>
+        /// <param name="triggerKey">Trigger Key</param>
+        /// <returns>hash key</returns>
+        public string TriggerJobDataMapHashKey(TriggerKey triggerKey)
+        {
+            return this.AddPrefix("trigger"  + _delimiter + triggerKey.Group + _delimiter + triggerKey.Name + "job_data_map");
+        }
+
+        /// <summary>
         /// a set key which holds all the trigger groups whose state are paused.
         /// </summary>
         /// <returns>set key</returns>
