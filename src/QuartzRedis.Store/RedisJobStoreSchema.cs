@@ -243,7 +243,7 @@ namespace QuartzRedis.Store
         /// <returns>JobKey</returns>
         public JobKey JobKey(string jobHashKey)
         {
-            var hashParts = this.Split(jobHashKey);
+            var hashParts = StripPrefix(jobHashKey).Split(new[] { _delimiter }, StringSplitOptions.None);
             return new JobKey(hashParts[2], hashParts[1]);
         }
 
@@ -276,6 +276,11 @@ namespace QuartzRedis.Store
             return this.AddPrefix("trigger" + _delimiter + triggerKey.Group + _delimiter + triggerKey.Name);
         }
 
+        public string TriggerDataMapHashKey(TriggerKey triggerKey)
+        {
+            return this.AddPrefix("trigger_data_map" + _delimiter + triggerKey.Group + _delimiter + triggerKey.Name);
+        }
+
         /// <summary>
         /// get the trigger group name based on triggerGroup Set key
         /// </summary>
@@ -283,7 +288,7 @@ namespace QuartzRedis.Store
         /// <returns>Trigger group name</returns>
         public String TriggerGroup(string triggerGroupSetKey)
         {
-            return this.Split(triggerGroupSetKey)[1];
+            return StripPrefix(triggerGroupSetKey).Split(new[] { _delimiter }, StringSplitOptions.None)[1];
         }
 
         /// <summary>
@@ -349,7 +354,7 @@ namespace QuartzRedis.Store
         /// <returns>TriggerKey</returns>
         public TriggerKey TriggerKey(String triggerHashKey)
         {
-            var hashParts = triggerHashKey.Split(new[] { _delimiter }, StringSplitOptions.None);
+            var hashParts = StripPrefix(triggerHashKey).Split(new[] { _delimiter }, StringSplitOptions.None);
             return new TriggerKey(hashParts[2], hashParts[1]);
         }
 
@@ -416,7 +421,7 @@ namespace QuartzRedis.Store
         /// <returns>Calendar Name</returns>
         public string GetCalendarName(string calendarHashKey)
         {
-            return Split(calendarHashKey)[1];
+            return StripPrefix(calendarHashKey).Split(new[] { _delimiter }, StringSplitOptions.None)[1];
         }
 
         /// <summary>
@@ -435,7 +440,7 @@ namespace QuartzRedis.Store
         /// <returns>Job's Group</returns>
         public String JobGroup(string jobGroupSetKey)
         {
-            return Split(jobGroupSetKey)[1];
+            return StripPrefix(jobGroupSetKey).Split(new[] { _delimiter }, StringSplitOptions.None)[1];
         }
 
         /// <summary>
@@ -467,6 +472,13 @@ namespace QuartzRedis.Store
         private String AddPrefix(String key)
         {
             return _prefix + key;
+        }
+
+        private string StripPrefix(string key)
+        {
+            return !string.IsNullOrEmpty(_prefix) && key.StartsWith(_prefix)
+                ? key.Substring(_prefix.Length)
+                : key;
         }
 
         /// <summary>

@@ -353,7 +353,7 @@ namespace QuartzRedis.Store
         /// <param name="newState"></param>
         protected void ReleaseOrphanedTriggers(RedisTriggerState currentState, RedisTriggerState newState)
         {
-            SortedSetEntry[] triggers = Db.SortedSetRangeByScoreWithScores(RedisJobStoreSchema.TriggerStateSetKey(currentState), 0, -1);
+            SortedSetEntry[] triggers = Db.SortedSetRangeByScoreWithScores(RedisJobStoreSchema.TriggerStateSetKey(currentState), double.NegativeInfinity, double.PositiveInfinity);
 
             foreach (var sortedSetEntry in triggers)
             {
@@ -414,7 +414,21 @@ namespace QuartzRedis.Store
 
             if (properties != null && properties.Count() > 0)
             {
-                return RetrieveTrigger(triggerKey, ConvertToDictionaryString(properties));
+                var trigger = RetrieveTrigger(triggerKey, ConvertToDictionaryString(properties));
+
+                if (trigger != null)
+                {
+                    var dataMapEntries = Db.HashGetAll(RedisJobStoreSchema.TriggerDataMapHashKey(triggerKey));
+                    if (dataMapEntries != null && dataMapEntries.Any())
+                    {
+                        foreach (var entry in ConvertToDictionaryString(dataMapEntries))
+                        {
+                            trigger.JobDataMap[entry.Key] = entry.Value;
+                        }
+                    }
+                }
+
+                return trigger;
             }
 
             _logger.WarnFormat("trigger does not exist - {0}", triggerHashKey);
@@ -458,6 +472,8 @@ namespace QuartzRedis.Store
 
             do
             {
+                retry = false;
+
                 var acquiredJobHashKeysForNoConcurrentExec = new global::System.Collections.Generic.HashSet<string>();
 
                 var score = ToUnixTimeMilliseconds(noLaterThan.Add(timeWindow));
@@ -470,6 +486,11 @@ namespace QuartzRedis.Store
                 {
 
                     var trigger = RetrieveTrigger(RedisJobStoreSchema.TriggerKey(sortedSetEntry.Element));
+
+                    if (trigger == null)
+                    {
+                        continue;
+                    }
 
                     if (ApplyMisfire(trigger))
                     {
@@ -601,7 +622,7 @@ namespace QuartzRedis.Store
             var jobTriggerSetKey = RedisJobStoreSchema.JobTriggersSetKey(jobKey);
             var triggerHashKeys = Db.SetMembers(jobTriggerSetKey);
 
-            return triggerHashKeys.Select(triggerHashKey => RetrieveTrigger(RedisJobStoreSchema.TriggerKey(triggerHashKey))).ToList();
+            return triggerHashKeys.Select(triggerHashKey => RetrieveTrigger(RedisJobStoreSchema.TriggerKey(triggerHashKey))).Where(t => t != null).ToList();
         }
 
         /// <summary>
@@ -803,13 +824,15 @@ namespace QuartzRedis.Store
 
             StoreTrigger(trigger, true);
 
-            if (nextFireTime.HasValue == false)
+            var updatedNextFireTime = trigger.GetNextFireTimeUtc();
+
+            if (!updatedNextFireTime.HasValue)
             {
                 SetTriggerState(RedisTriggerState.Completed,
                                      score, RedisJobStoreSchema.TriggerHashkey(trigger.Key));
                 SchedulerSignaler.NotifySchedulerListenersFinalized(trigger);
             }
-            else if (nextFireTime.Equals(trigger.GetNextFireTimeUtc()))
+            else if (nextFireTime.Equals(updatedNextFireTime))
             {
                 return false;
             }
@@ -923,7 +946,7 @@ namespace QuartzRedis.Store
             var entries = new List<HashEntry>();
             if (jobDataMap != null)
             {
-                entries.AddRange(jobDataMap.Select(entry => new HashEntry(entry.Key, entry.Value.ToString())));
+                entries.AddRange(jobDataMap.Select(entry => new HashEntry(entry.Key, entry.Value?.ToString() ?? "")));
             }
             return entries.ToArray();
         }
@@ -1035,7 +1058,7 @@ namespace QuartzRedis.Store
         /// <returns>succeed or not</returns>
         protected bool LockTrigger(TriggerKey triggerKey)
         {
-            return Db.StringSet(RedisJobStoreSchema.TriggerLockKey(triggerKey), SchedulerInstanceId, TimeSpan.FromSeconds(TriggerLockTimeout));
+            return Db.StringSet(RedisJobStoreSchema.TriggerLockKey(triggerKey), SchedulerInstanceId, TimeSpan.FromMilliseconds(TriggerLockTimeout));
         }
 
 
@@ -1116,8 +1139,7 @@ namespace QuartzRedis.Store
         private void PopulateTrigger(TriggerKey triggerKey, IDictionary<string, string> properties, IOperableTrigger trigger)
         {
             trigger.Key = triggerKey;
-            var jobGroupName = RedisJobStoreSchema.Split(properties[RedisJobStoreSchema.JobHash]);
-            trigger.JobKey = new JobKey(jobGroupName[2], jobGroupName[1]);
+            trigger.JobKey = RedisJobStoreSchema.JobKey(properties[RedisJobStoreSchema.JobHash]);
             trigger.Description = properties[RedisJobStoreSchema.Description];
             trigger.FireInstanceId = properties[RedisJobStoreSchema.FireInstanceId];
             trigger.CalendarName = properties[RedisJobStoreSchema.CalendarName];
@@ -1219,9 +1241,11 @@ namespace QuartzRedis.Store
         /// <param name="min">mininum number</param>
         /// <param name="max">maxinum number></param>
         /// <returns>random number</returns>
+        private static readonly Random _random = new Random();
+
         protected int RandomInt(int min, int max)
         {
-            return new Random().Next((max - min) + 1) + min;
+            return _random.Next((max - min) + 1) + min;
         }
 
         /// <summary>

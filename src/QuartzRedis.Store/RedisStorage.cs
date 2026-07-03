@@ -83,7 +83,7 @@ namespace QuartzRedis.Store
 
 
             Db.HashSet(triggerHashKey, ConvertToHashEntries(trigger));
-            Db.HashSet(triggerDataMapHashKey, ConvertToHashEntries(trigger.JobDataMap));
+            Db.HashSet(RedisJobStoreSchema.TriggerDataMapHashKey(trigger.Key), ConvertToHashEntries(((IOperableTrigger)trigger).JobDataMap));
             Db.SetAdd(RedisJobStoreSchema.TriggersSetKey(), triggerHashKey);
             Db.SetAdd(RedisJobStoreSchema.TriggerGroupsSetKey(), triggerGroupSetKey);
             Db.SetAdd(triggerGroupSetKey, triggerHashKey);
@@ -173,7 +173,12 @@ namespace QuartzRedis.Store
                 {
                     var trigger = RetrieveTrigger(RedisJobStoreSchema.TriggerKey(triggerHashKey));
 
-                    trigger.UpdateWithNewCalendar(calendar, TimeSpan.FromSeconds(MisfireThreshold));
+                    if (trigger == null)
+                    {
+                        continue;
+                    }
+
+                    trigger.UpdateWithNewCalendar(calendar, TimeSpan.FromMilliseconds(MisfireThreshold));
 
                     StoreTrigger(trigger, true);
                 }
@@ -260,9 +265,12 @@ namespace QuartzRedis.Store
 
                 Db.SetRemove(RedisJobStoreSchema.TriggersSetKey(), triggerHashKey);
 
-                Db.SetRemove(RedisJobStoreSchema.TriggerGroupsSetKey(), triggerGroupKey);
-
                 Db.SetRemove(RedisJobStoreSchema.TriggerGroupSetKey(triggerkey.Group), triggerHashKey);
+
+                if (Db.SetLength(RedisJobStoreSchema.TriggerGroupSetKey(triggerkey.Group)) == 0)
+                {
+                    Db.SetRemove(RedisJobStoreSchema.TriggerGroupsSetKey(), triggerGroupKey);
+                }
 
                 Db.KeyDelete(triggerHashKey.ToString());
             }
@@ -490,6 +498,7 @@ namespace QuartzRedis.Store
             }
 
             this.UnsetTriggerState(triggerHashKey);
+            Db.KeyDelete(RedisJobStoreSchema.TriggerDataMapHashKey(triggerKey));
             return Db.KeyDelete(triggerHashKey);
         }
 
@@ -517,6 +526,11 @@ namespace QuartzRedis.Store
                 foreach (var triggerHashKey in triggerHashKeysResult)
                 {
                     var trigger = RetrieveTrigger(RedisJobStoreSchema.TriggerKey(triggerHashKey));
+
+                    if (trigger == null)
+                    {
+                        continue;
+                    }
 
                     ResumeTrigger(trigger.Key);
 
@@ -641,6 +655,12 @@ namespace QuartzRedis.Store
 
                 var job = this.RetrieveJob(trigger.JobKey);
 
+                if (job == null)
+                {
+                    Logger.WarnFormat("Job for trigger {0} no longer exists", triggerHashKey);
+                    continue;
+                }
+
                 var triggerFireBundle = new TriggerFiredBundle(job, trigger, calendar, false, DateTimeOffset.UtcNow,
                                                                previousFireTime, previousFireTime, trigger.GetNextFireTimeUtc());
 
@@ -686,13 +706,13 @@ namespace QuartzRedis.Store
                     
 
                     double? oldscore = this.Db.SortedSetScore(this.RedisJobStoreSchema.JobBlockedKeyTime(job.Key),
-                                            this.RedisJobStoreSchema.JobBlockedKeyTime(job.Key));
+                                            triggerHashKey);
                     if ((oldscore ?? 0) == nextFireTime.DateTime.ToUnixTimeMilliSeconds())
                     {
                         triggerflag = false;
                     }
                     this.Db.SortedSetAdd(this.RedisJobStoreSchema.JobBlockedKeyTime(job.Key),
-                                        this.RedisJobStoreSchema.JobBlockedKeyTime(job.Key), nextFireTime.DateTime.ToUnixTimeMilliSeconds());
+                                        triggerHashKey, nextFireTime.DateTime.ToUnixTimeMilliSeconds());
 
                 }
                 else
@@ -762,7 +782,7 @@ namespace QuartzRedis.Store
                                                     nonConcurrentTriggerHashKey);
                         if (score.HasValue)
                         {
-                            this.SetTriggerState(RedisTriggerState.Paused, score.Value, nonConcurrentTriggerHashKey);
+                            this.SetTriggerState(RedisTriggerState.Waiting, score.Value, nonConcurrentTriggerHashKey);
                         }
                         else
                         {

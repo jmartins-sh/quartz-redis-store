@@ -198,15 +198,16 @@ namespace QuartzRedis.Store
 
         public Task<bool> IsJobGroupPaused(string groupName, CancellationToken cancellationToken = default)
         {
-            _logger.Debug("scheduler has paused");
-            return Task.FromResult(true);
+            _logger.Debug("IsJobGroupPaused");
+            return Task.FromResult(DoWithLock(() => _storage.IsJobGroupPaused(groupName),
+                              string.Format("Error on IsJobGroupPaused - Group {0}", groupName)));
         }
 
         public Task<bool> IsTriggerGroupPaused(string groupName, CancellationToken cancellationToken = default)
         {
-            _logger.Debug("IsJobGroupPaused");
-            return Task.FromResult(DoWithLock(() => _storage.IsJobGroupPaused(groupName),
-                              string.Format("Error on IsJobGroupPaused - Group {0}", groupName)));
+            _logger.Debug("IsTriggerGroupPaused");
+            return Task.FromResult(DoWithLock(() => _storage.IsTriggerGroupPaused(groupName),
+                              string.Format("Error on IsTriggerGroupPaused - Group {0}", groupName)));
         }
 
         public Task StoreJob(IJobDetail newJob, bool replaceExisting, CancellationToken cancellationToken = default)
